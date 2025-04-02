@@ -126,19 +126,26 @@ def GenerateChart(chartType, data):
             closes.append(float(values['4. close']))    
     if chartType == "LINE":
         line_chart = pygal.Line()
-        line_chart.title = 'Browser usage evolution (in %)'
+        line_chart.title = 'Line'
         line_chart.x_labels = dates
         line_chart.add('Open', opens)
         line_chart.add('High', highs)
         line_chart.add('Low',  lows)
         line_chart.add('Close', closes)
         line_chart.render_in_browser()
-   
-
+    elif chartType == "BAR":
+        bar_chart = pygal.Bar()
+        bar_chart.title = 'Bar'
+        bar_chart.x_labels = dates
+        bar_chart.add('Open', opens)
+        bar_chart.add('High', highs)
+        bar_chart.add('Low',  lows)
+        bar_chart.add('Close', closes)
+        bar_chart.render_in_browser()
 
     #elif chartType == "CANDLESTICK":
-    #    ohlc_data = [(datetime.datetime.strptime(date, "%Y-%m-%d"), float(values['1. open']), float(values['2. high']), float(values['3. low']), float(values['4. close'])) for date, values in data.items()]
-    #    mpf.plot(pd.DataFrame(ohlc_data, columns=['Date', 'Open', 'High', 'Low', 'Close']).set_index('Date'), type='candle', style='charles')
+        #ohlc_data = [(datetime.datetime.strptime(date, "%Y-%m-%d"), float(values['1. open']), float(values['2. high']), float(values['3. low']), float(values['4. close'])) for date, values in data.items()]
+        #mpf.plot(pd.DataFrame(ohlc_data, columns=['Date', 'Open', 'High', 'Low', 'Close']).set_index('Date'), type='candle', style='charles')
     return
     
     
