@@ -1,4 +1,8 @@
 import json, requests, datetime, time, json
+import matplotlib.pyplot as plt
+import pygal
+import numpy as np
+
 
 def main():
     #variables
@@ -52,11 +56,11 @@ def main():
     convertedBeginDate, convertedEndDate = ChoosingDates()
 
     #generating chart
-    GetData(stockSymbol, apiKey, timeSeries, convertedBeginDate, convertedEndDate, chosenRows)
+    GetData(stockSymbol, apiKey, timeSeries, convertedBeginDate, convertedEndDate, chosenRows, chartType)
 
 
 #getting the api data
-def GetData(stockSymbol, apiKey, timeSeries, convertedBeginningDate, convertedEndDate, chosenRows):
+def GetData(stockSymbol, apiKey, timeSeries, convertedBeginningDate, convertedEndDate, chosenRows, chartType):
     
     #getting the data from the API
     url = f"https://www.alphavantage.co/query?function=TIME_SERIES_{timeSeries}&symbol={stockSymbol}&outputsize=compact&apikey={apiKey}&datatype=json"
@@ -86,6 +90,8 @@ def GetData(stockSymbol, apiKey, timeSeries, convertedBeginningDate, convertedEn
             filtered_data[date] = values
 
     limited_data = dict(list(filtered_data.items())[:chosenRows])
+
+    
     
     print("")
     time.sleep(2)
@@ -97,12 +103,45 @@ def GetData(stockSymbol, apiKey, timeSeries, convertedBeginningDate, convertedEn
     print("\n", json.dumps(limited_data, indent=4))
     with open("data.json", "w") as file:
         json.dump(data, file)
+
+    
+    #print("Data received from API:", limited_data)
+    GenerateChart(chartType, limited_data)
+    
     return
 
 #generate the chart
 def GenerateChart(chartType, data):
-    return
+    dates = list(data.keys())[::-1]
+    opens, highs, lows, closes = [], [], [], []
 
+
+    for date in dates:
+        values = data[date]  
+    
+        if all(key in values for key in ['1. open', '2. high', '3. low', '4. close']):
+            opens.append(float(values['1. open']))
+            highs.append(float(values['2. high']))
+            lows.append(float(values['3. low']))
+            closes.append(float(values['4. close']))    
+    if chartType == "LINE":
+        line_chart = pygal.Line()
+        line_chart.title = 'Browser usage evolution (in %)'
+        line_chart.x_labels = dates
+        line_chart.add('Open', opens)
+        line_chart.add('High', highs)
+        line_chart.add('Low',  lows)
+        line_chart.add('Close', closes)
+        line_chart.render_in_browser()
+   
+
+
+    #elif chartType == "CANDLESTICK":
+    #    ohlc_data = [(datetime.datetime.strptime(date, "%Y-%m-%d"), float(values['1. open']), float(values['2. high']), float(values['3. low']), float(values['4. close'])) for date, values in data.items()]
+    #    mpf.plot(pd.DataFrame(ohlc_data, columns=['Date', 'Open', 'High', 'Low', 'Close']).set_index('Date'), type='candle', style='charles')
+    return
+    
+    
 #getting user dates
 def ChoosingDates():
 
