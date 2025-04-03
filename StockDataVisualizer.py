@@ -20,12 +20,15 @@ def main():
             break
 
     #Ask the user for the chart type they would like.
-    validChartTypes = ["LINE", "BAR", "CANDLESTICK"]
-    chartType = input("\nPlease enter the chart type you would like (LINE, BAR, CANDLESTICK): ").upper()
+    validChartTypes = ["LINE", "BAR"]
+    #validChartTypes = ["LINE", "BAR", "CANDLESTICK"]
+    chartType = input("\nPlease enter the chart type you would like (LINE, BAR): ").upper()
+    #chartType = input("\nPlease enter the chart type you would like (LINE, BAR, CANDLESTICK): ").upper()
 
     while chartType not in validChartTypes:
         print("Invalid chart type. Please enter a valid option.")
-        chartType = input("\nPlease enter the chart type you would like (LINE, BAR, CANDLESTICK): ").upper()
+        chartType = input("\nPlease enter the chart type you would like (LINE, BAR): ").upper()
+        #chartType = input("\nPlease enter the chart type you would like (LINE, BAR, CANDLESTICK): ").upper()
     
     #Ask the user for the time series function they want the api to use.
     validTimeSeries = ["INTRADAY", "DAILY", "DAILY_ADJUSTED", "WEEKLY", "WEEKLY_ADJUSTED", "MONTHLY", "MONTHLY_ADJUSTED"]
@@ -94,7 +97,6 @@ def GetData(stockSymbol, apiKey, timeSeries, convertedBeginningDate, convertedEn
     limited_data = dict(list(filtered_data.items())[:chosenRows])
 
     
-    
     print("")
     time.sleep(2)
     for i in range(3, 0, -1):
@@ -146,15 +148,8 @@ def GenerateChart(chartType, data):
         bar_chart.add('Close', closes)
         bar_chart.render_in_browser()
 
-    elif chartType == "CANDLESTICK":
-        df = pd.DataFrame({
-        "Open": opens,
-        "High": highs,
-        "Low": lows,
-        "Close": closes
-        }, index=dates)
-
-        mpf.plot(df, type='candle', style='charles', title="Stock Price Candlestick Chart", ylabel="Price ($)")
+    #elif chartType == "CANDLESTICK":
+        
 
         #ohlc_data = [(datetime.datetime.strptime(date, "%Y-%m-%d"), float(values['1. open']), float(values['2. high']), float(values['3. low']), float(values['4. close'])) for date, values in data.items()]
         #mpf.plot(pd.DataFrame(ohlc_data, columns=['Date', 'Open', 'High', 'Low', 'Close']).set_index('Date'), type='candle', style='charles')
