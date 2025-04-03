@@ -96,6 +96,12 @@ def GetData(stockSymbol, apiKey, timeSeries, convertedBeginningDate, convertedEn
 
     limited_data = dict(list(filtered_data.items())[:chosenRows])
 
+    dates = list(limited_data.keys())[::-1]
+
+    if not dates:
+        print("There is no data for the selected dates")
+        return
+    
     
     print("")
     time.sleep(2)
