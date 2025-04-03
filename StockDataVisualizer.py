@@ -1,5 +1,7 @@
 import json, requests, datetime, time, json
 import matplotlib.pyplot as plt
+import mplfinance as mpf
+import pandas as pd
 import pygal
 import numpy as np
 
@@ -123,7 +125,8 @@ def GenerateChart(chartType, data):
             opens.append(float(values['1. open']))
             highs.append(float(values['2. high']))
             lows.append(float(values['3. low']))
-            closes.append(float(values['4. close']))    
+            closes.append(float(values['4. close'])) 
+
     if chartType == "LINE":
         line_chart = pygal.Line()
         line_chart.title = 'Line'
@@ -143,7 +146,16 @@ def GenerateChart(chartType, data):
         bar_chart.add('Close', closes)
         bar_chart.render_in_browser()
 
-    #elif chartType == "CANDLESTICK":
+    elif chartType == "CANDLESTICK":
+        df = pd.DataFrame({
+        "Open": opens,
+        "High": highs,
+        "Low": lows,
+        "Close": closes
+        }, index=dates)
+
+        mpf.plot(df, type='candle', style='charles', title="Stock Price Candlestick Chart", ylabel="Price ($)")
+
         #ohlc_data = [(datetime.datetime.strptime(date, "%Y-%m-%d"), float(values['1. open']), float(values['2. high']), float(values['3. low']), float(values['4. close'])) for date, values in data.items()]
         #mpf.plot(pd.DataFrame(ohlc_data, columns=['Date', 'Open', 'High', 'Low', 'Close']).set_index('Date'), type='candle', style='charles')
     return
