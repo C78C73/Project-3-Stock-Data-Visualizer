@@ -1,4 +1,10 @@
 import json, requests, datetime, time, json
+#import matplotlib.pyplot as plt
+#import mplfinance as mpf
+#import pandas as pd
+import pygal
+import numpy as np
+
 
 def main():
     #variables
@@ -14,12 +20,15 @@ def main():
             break
 
     #Ask the user for the chart type they would like.
-    validChartTypes = ["LINE", "BAR", "CANDLESTICK"]
-    chartType = input("\nPlease enter the chart type you would like (LINE, BAR, CANDLESTICK): ").upper()
+    validChartTypes = ["LINE", "BAR"]
+    #validChartTypes = ["LINE", "BAR", "CANDLESTICK"]
+    chartType = input("\nPlease enter the chart type you would like (LINE, BAR): ").upper()
+    #chartType = input("\nPlease enter the chart type you would like (LINE, BAR, CANDLESTICK): ").upper()
 
     while chartType not in validChartTypes:
         print("Invalid chart type. Please enter a valid option.")
-        chartType = input("\nPlease enter the chart type you would like (LINE, BAR, CANDLESTICK): ").upper()
+        chartType = input("\nPlease enter the chart type you would like (LINE, BAR): ").upper()
+        #chartType = input("\nPlease enter the chart type you would like (LINE, BAR, CANDLESTICK): ").upper()
     
     #Ask the user for the time series function they want the api to use.
     validTimeSeries = ["INTRADAY", "DAILY", "DAILY_ADJUSTED", "WEEKLY", "WEEKLY_ADJUSTED", "MONTHLY", "MONTHLY_ADJUSTED"]
@@ -34,29 +43,29 @@ def main():
     # u ask for 5 days in start and end date but then choose 3 for rows then it does the last 3 days not the 5 soo
 
     # asking user how many rows of data they want, how many days of data they want to see
-    while True:
-        try:
-            chosenRows = int(input("\nHow many rows of data would you like to see? (1-100): "))
-            if (chosenRows < 1 or chosenRows > 100):
-                print("Please enter a number between 1 and 100.")
-                continue
-            else:
-                break
-        except ValueError:
-            print("Please enter a valid number.")
-            continue
-        except Exception as e:
-            print("An error occurred: ", e)
+    #while True:
+     #   try:
+      #      chosenRows = int(input("\nHow many rows of data would you like to see? (1-100): "))
+       #     if (chosenRows < 1 or chosenRows > 100):
+        #        print("Please enter a number between 1 and 100.")
+         #       continue
+          #  else:
+           #     break
+        #except ValueError:
+         #   print("Please enter a valid number.")
+          #  continue
+        #except Exception as e:
+         #   print("An error occurred: ", e)
 
     #Ask the user for the beginning date in YYYY-MM-DD format.
     convertedBeginDate, convertedEndDate = ChoosingDates()
 
     #generating chart
-    GetData(stockSymbol, apiKey, timeSeries, convertedBeginDate, convertedEndDate, chosenRows)
+    GetData(stockSymbol, apiKey, timeSeries, convertedBeginDate, convertedEndDate, chartType)
 
 
 #getting the api data
-def GetData(stockSymbol, apiKey, timeSeries, convertedBeginningDate, convertedEndDate, chosenRows):
+def GetData(stockSymbol, apiKey, timeSeries, convertedBeginningDate, convertedEndDate, chartType):
     
     #getting the data from the API
     url = f"https://www.alphavantage.co/query?function=TIME_SERIES_{timeSeries}&symbol={stockSymbol}&outputsize=compact&apikey={apiKey}&datatype=json"
@@ -85,7 +94,14 @@ def GetData(stockSymbol, apiKey, timeSeries, convertedBeginningDate, convertedEn
         if convertedBeginningDate <= date_obj <= convertedEndDate:
             filtered_data[date] = values
 
-    limited_data = dict(list(filtered_data.items())[:chosenRows])
+    limited_data = dict(list(filtered_data.items()))
+
+    dates = list(limited_data.keys())[::-1]
+
+    if not dates:
+        print("There is no data for the selected dates")
+        return
+    
     
     print("")
     time.sleep(2)
@@ -97,12 +113,55 @@ def GetData(stockSymbol, apiKey, timeSeries, convertedBeginningDate, convertedEn
     print("\n", json.dumps(limited_data, indent=4))
     with open("data.json", "w") as file:
         json.dump(data, file)
+
+    
+    #print("Data received from API:", limited_data)
+    GenerateChart(chartType, limited_data, convertedBeginningDate, convertedEndDate, stockSymbol)
+    
     return
 
 #generate the chart
-def GenerateChart(chartType, data):
-    return
+def GenerateChart(chartType, data, startDate, EndDate, stockSymbol):
+    dates = list(data.keys())[::-1]
+    opens, highs, lows, closes = [], [], [], []
 
+
+    for date in dates:
+        values = data[date]  
+    
+        if all(key in values for key in ['1. open', '2. high', '3. low', '4. close']):
+            opens.append(float(values['1. open']))
+            highs.append(float(values['2. high']))
+            lows.append(float(values['3. low']))
+            closes.append(float(values['4. close'])) 
+
+    if chartType == "LINE":
+        line_chart = pygal.Line()
+        line_chart.title = '%s %s Chart from %s to %s' % (stockSymbol, chartType, startDate, EndDate)
+        line_chart.x_labels = dates
+        line_chart.add('Open', opens)
+        line_chart.add('High', highs)
+        line_chart.add('Low',  lows)
+        line_chart.add('Close', closes)
+        line_chart.render_in_browser()
+    elif chartType == "BAR":
+        bar_chart = pygal.Bar()
+        bar_chart.title = '%s %s Chart from %s to %s' % (stockSymbol, chartType, startDate, EndDate)
+        bar_chart.x_labels = dates
+        bar_chart.add('Open', opens)
+        bar_chart.add('High', highs)
+        bar_chart.add('Low',  lows)
+        bar_chart.add('Close', closes)
+        bar_chart.render_in_browser()
+
+    #elif chartType == "CANDLESTICK":
+        
+
+        #ohlc_data = [(datetime.datetime.strptime(date, "%Y-%m-%d"), float(values['1. open']), float(values['2. high']), float(values['3. low']), float(values['4. close'])) for date, values in data.items()]
+        #mpf.plot(pd.DataFrame(ohlc_data, columns=['Date', 'Open', 'High', 'Low', 'Close']).set_index('Date'), type='candle', style='charles')
+    return
+    
+    
 #getting user dates
 def ChoosingDates():
 
